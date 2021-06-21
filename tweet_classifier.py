@@ -1,5 +1,4 @@
 import numpy as np
-from pathlib import Path
 import pandas as pd
 import argparse
 
@@ -37,6 +36,7 @@ def normalize_series(series):
 
 def classifier(df, text, target_label):
     from sklearn.model_selection import train_test_split
+    from sklearn.metrics import classification_report
     from sklearn.pipeline import Pipeline
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -50,7 +50,8 @@ def classifier(df, text, target_label):
             ('RF Classifier', RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=42))
         ])
     clf.fit(train_corpus, train_label_names)
-    print(f"model score: {clf.score(test_corpus, test_label_names):.3f}")
+    print(f"model accuracy: {clf.score(test_corpus, test_label_names):.3f}")
+    print(classification_report(test_label_names, clf.predict(test_corpus)))
     return clf
 
 if __name__ == '__main__':
@@ -74,7 +75,7 @@ if __name__ == '__main__':
                         index_col=0,
                         names=['id', 'created_at', 'text', 'user_id', 'place', 'user_place', 'country', 'coordinates', 'undefined_col', 'undefined_col2', 'undefined_col3'])
     # Clean NAs in text
-    print(f"We have{full_df.text.isna().sum()} NAs")
+    print(f"We have {full_df.text.isna().sum()} NAs")
     full_df.dropna(subset=['text'], inplace=True)
 
     full_df['cleaned_text'] = normalize_series(full_df['text'])
