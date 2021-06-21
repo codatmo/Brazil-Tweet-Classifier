@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 import pandas as pd
-
+import argparse
 
 def load_csv(data_dir, filename):
     """
@@ -53,26 +53,33 @@ def classifier(df, text, target_label):
     print(f"model score: {clf.score(test_corpus, test_label_names):.3f}")
     return clf
 
-df = load_csv('data', 'aggregated_data.csv')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='This script will use your clean by data_prep.py and classify the tweets', add_help=True)
+    parser.add_argument(
+        '-i', '--input', help="string file path for the input labeled CSV file")
+    parser.add_argument(
+        '-l', '--label', help="string with the label column that should be used for training the classifier, i.e. the 0/1 column")
+    parser.add_argument(
+        '-d', '--data', help="string file path for the data CSV file that you want to generate predictions")
+    parser.add_argument(
+        '-o', '--output', help="string file path for the output CSV file with predictions")
+    args = parser.parse_args()
+    df = pd.read_csv(args.input)
+    df['text'] = normalize_series(df['text'])
 
-df['text'] = normalize_series(df['text'])
+    clf = classifier(df, 'text', args.label)
 
-clf = classifier(df, 'text', 'label')
+    full_df = pd.read_csv(args.data,
+                        index_col=0,
+                        names=['id', 'created_at', 'text', 'user_id', 'place', 'user_place', 'country', 'coordinates', 'undefined_col', 'undefined_col2', 'undefined_col3'])
+    # Clean NAs in text
+    print(f"We have{full_df.text.isna().sum()} NAs")
+    full_df.dropna(subset=['text'], inplace=True)
 
+    full_df['cleaned_text'] = normalize_series(full_df['text'])
+    full_df['predicted'] = clf.predict(full_df['cleaned_text'])
+    full_df['date'] = pd.to_datetime(full_df['created_at'])
 
-full_df = pd.read_csv(Path('data').joinpath('flu_pt_raw_tweets.csv'),
-                      index_col=0,
-                      names=['id', 'created_at', 'text', 'user_id', 'place', 'user_place', 'country', 'coordinates', 'undefined_col', 'undefined_col2', 'undefined_col3'])
-
-# Clean NAs in text
-print(f"We have{full_df.text.isna().sum()} 303 NAs")
-full_df.dropna(subset=['text'], inplace=True)
-
-
-full_df['cleaned_text'] = normalize_series(full_df['text'])
-
-full_df['predicted'] = clf.predict(full_df['cleaned_text'])
-full_df['date'] = pd.to_datetime(full_df['created_at'])
-
-full_df.groupby(full_df['date'].dt.date).agg(
-    {'predicted': 'sum'}).to_csv(Path('data').joinpath('tweet_count.csv'))
+    full_df.groupby(full_df['date'].dt.date).agg(
+        {'predicted': 'sum'}).to_csv(args.output)

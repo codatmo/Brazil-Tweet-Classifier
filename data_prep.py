@@ -1,3 +1,6 @@
+import argparse
+import pandas as pd
+
 def concat_data(data_dir, extensions):
     """
     Loop for every data file in data_dir
@@ -33,9 +36,16 @@ def save_csv(df, data_dir, filename):
     from pathlib import Path
     df.to_csv(Path(data_dir).joinpath(filename), index=False)
 
+#df = concat_data('data', {'.xlsx'})
+#df = clean_labels(df, 'label')
+#save_csv(df, 'data', 'aggregated_data.csv')
 
-
-
-df = concat_data('data', {'.xlsx'})
-df = clean_labels(df, 'label')
-save_csv(df, 'data', 'aggregated_data.csv')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='This script will clean your data and prepare for tweet_classifier.py', add_help=True)
+    parser.add_argument('-i', '--input', help="string file path for the input CSV file")
+    parser.add_argument('-l', '--label', help="string with the label column that should be prepped")
+    parser.add_argument('-o', '--output', help="string file path for the output CSV file")
+    args = parser.parse_args()
+    df = pd.read_csv(args.input)
+    df = clean_labels(df, args.label)
+    df.to_csv(args.output)
