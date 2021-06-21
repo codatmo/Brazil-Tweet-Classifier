@@ -1,0 +1,33 @@
+---
+title: "Summary Table"
+output:
+  html_document:
+    df_print: paged
+---
+
+[Export tables from R to LaTex](https://tex.stackexchange.com/questions/364225/export-tables-from-r-to-latex)
+[Insert R code in Latex](https://tex.stackexchange.com/questions/374001/insert-r-code-in-latex)
+[R package xtable](https://stackoverflow.com/questions/15036754/r-package-xtable-how-to-create-a-latextable-with-multiple-rows-and-columns-from)
+
+
+```{r, include=FALSE}
+#install.packages("kableExtra")
+#install.packages("xtable")
+#library(kableExtra)
+library(dplyr)
+library(xtable)
+
+setwd("C:/Users/andre/Downloads")
+dt <- read.csv(file = "summarySARS-Twitter.csv")
+dt <- dt[-1,]
+dt <- subset(dt, select = c("X", "n", "mean",  "sd", "median", "mad", 
+                            "min", "max", "range"))
+
+columns <- c(" ", "n", "mean",  "sd", "median", "mad", "min", "max", "range")
+colnames(dt) <- columns
+```
+```{r}
+print(xtable(dt, type = "latex"), file = "summary.tex")
+xtable(dt)
+```
+

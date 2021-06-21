@@ -1,7 +1,9 @@
 ---
 title: "Severe Acute Respiratory Illness (SARI)"
 author: "André Luis Marques Ferreira dos Santos | andrelmfsantos@gmail.com"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r, include=FALSE}
@@ -23,9 +25,9 @@ library(psych)
 ```{r, include=FALSE}
 setwd("C:/Users/andre/Downloads")
 
-#system.time(dataset1 <- fread(file = "INFLUD-14-06-2021.csv"))
-#system.time(dataset2 <- fread(file = "dask_Tweets_UniqueID_BaseFinal.csv"))
-#system.time(dataset3 <- fread(file = "tweet_count.csv"))
+system.time(dataset1 <- fread(file = "INFLUD-14-06-2021.csv"))
+system.time(dataset2 <- fread(file = "dask_Tweets_UniqueID_BaseFinal.csv"))
+system.time(dataset3 <- fread(file = "tweet_count.csv"))
 system.time(dataset4 <- fread(file = "COVID_Twitter_Symptoms16.csv"))
 ```
 
@@ -53,12 +55,15 @@ df <- df %>% group_by(DT_EVOLUCA) %>%
 names(df)[names(df) == "DT_EVOLUCA"] <- "date"
 ```
 
-```{r}
-psych::describe(df)
+Summary SUS
+```{r, echo=FALSE}
+dftab <- psych::describe(df)
+print(dftab)
 write.csv(df, "sars_ts.csv")
+write.csv(dftab, "summarySUS.csv")
 ```
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 sars_plot <-
   ggplot(df, aes(x = date, y = n)) +
   geom_line(color = "#FC4E07", size = 1) +
@@ -90,15 +95,16 @@ df1 <- df1 %>% filter(date >= "2020-02-25" & date <= "2020-12-31")
 # Summarize (311 obs. of 3 variables)
 df1 <- df1 %>% group_by(date) %>%
   summarise(n = sum(n, na.rm = TRUE))
-
 ```
 
-```{r}
-psych::describe(df1)
-write.csv(df, "twitter_ts.csv")
+```{r, echo=FALSE}
+df1tab <- psych::describe(df1)
+print(df1tab)
+write.csv(df1, "twitter_ts.csv")
+write.csv(df1tab, "summaryTwitterU9.csv")
 ```
 ```{r, echo=TRUE}
-twitter_plot <-
+twitter_plotU9 <-
   ggplot(df1, aes(x = date, y = n)) +
   geom_line(color = "#001f4d", size = 1) +
   labs(
@@ -109,17 +115,17 @@ twitter_plot <-
     subtitle = "Number of tweets by day"
   ) #+
   #stat_smooth(method = "lm", formula = y ~ x, size = 1, col = "red")
-twitter_plot + theme(legend.position = "bottom")
+twitter_plotU9 + theme(legend.position = "bottom")
 
-fig2 <- ggplotly(twitter_plot)
+fig2 <- ggplotly(twitter_plotU9)
 fig2
-#print(covid_plot)
-ggsave("twitter_plot.png", width = 32, height = 18, units = "cm", dpi = 300)
-print(twitter_plot)
+
+ggsave("twitter_plotU9.png", width = 32, height = 18, units = "cm", dpi = 300)
+print(twitter_plotU9)
 ```
 #Twitter 2019-2020
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 dt1 <- subset(dataset2, select = c("date"))
 dt1$n <- 1
 # to date format:
@@ -145,15 +151,15 @@ twitter_plot19 <-
   #stat_smooth(method = "lm", formula = y ~ x, size = 1, col = "red")
 twitter_plot19 + theme(legend.position = "bottom")
 
-fig3 <- ggplotly(twitter_plot)
+fig3 <- ggplotly(twitter_plot19)
 fig3
-#print(covid_plot)
+
 ggsave("twitter_plot19.png", width = 32, height = 18, units = "cm", dpi = 300)
 print(twitter_plot19)
 ```
 ### Twitter Liverpool
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 dt2 <- dataset3
 
 # Rename column
@@ -169,7 +175,7 @@ dt2 <- dt2 %>% filter(date >= "2020-02-25" & date <= "2020-12-31")
 dt2 <- dt2 %>% group_by(date) %>%
   summarise(n = sum(n, na.rm = TRUE))
 
-twitter_plotL <-
+twitter_Liver <-
   ggplot(dt2, aes(x = date, y = n)) +
   geom_line(color = "#0000FF", size = 1) +
   labs(
@@ -180,16 +186,23 @@ twitter_plotL <-
     subtitle = "Number of tweets by day"
   ) #+
   #stat_smooth(method = "lm", formula = y ~ x, size = 1, col = "red")
-twitter_plotL + theme(legend.position = "bottom")
+twitter_Liver + theme(legend.position = "bottom")
 
-fig4 <- ggplotly(twitter_plotL)
+fig4 <- ggplotly(twitter_Liver)
 fig4
-#print(covid_plot)
-ggsave("twitter_plotL.png", width = 32, height = 18, units = "cm", dpi = 300)
-print(twitter_plotL)
+
+ggsave("twitter_Liver.png", width = 32, height = 18, units = "cm", dpi = 300)
+print(twitter_Liver)
+```
+Summary Twitter Liverpool
+```{r, echo=FALSE}
+dt2tab <- psych::describe(dt2)
+print(dt2tab)
+write.csv(dt2, "twitter_Liverpool.csv")
+write.csv(dt2tab, "summaryTwitterLiver.csv")
 ```
 
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 dt3 <- subset(dataset4, select = c("date"))
 dt3$n <- 1
 # to date format:
@@ -202,7 +215,7 @@ dt3 <- dt3 %>% filter(date >= "2020-02-25" & date <= "2020-12-31")
 dt3 <- dt3 %>% group_by(date) %>%
   summarise(n = sum(n, na.rm = TRUE))
 
-twitter_plotG <-
+twitter_Gripe <-
   ggplot(dt3, aes(x = date, y = n)) +
   geom_line(color = "#808088", size = 1) +
   labs(
@@ -213,21 +226,21 @@ twitter_plotG <-
     subtitle = "Number of tweets by day"
   ) #+
   #stat_smooth(method = "lm", formula = y ~ x, size = 1, col = "red")
-twitter_plotG + theme(legend.position = "bottom")
+twitter_Gripe + theme(legend.position = "bottom")
 
-fig5 <- ggplotly(twitter_plotG)
+fig5 <- ggplotly(twitter_Gripe)
 fig5
-#print(covid_plot)
-ggsave("twitter_plotG.png", width = 32, height = 18, units = "cm", dpi = 300)
-print(twitter_plotG)
+
+ggsave("twitter_Gripe.png", width = 32, height = 18, units = "cm", dpi = 300)
+print(twitter_Gripe)
 ```
 ### SARI + Twitter
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 # Rename column
-#names(df)[names(df) == "n"] <- "SARS"
-#names(df1)[names(df1) == "n"] <- "TWITTER"
+names(df)[names(df) == "n"] <- "SARS"
+names(df1)[names(df1) == "n"] <- "TWITTER"
 #names(dt2)[names(dt2) == "n"] <- "Liverpool"
-#names(dt3)[names(dt3) == "n"] <- "Gripe"
+names(dt3)[names(dt3) == "n"] <- "Gripe"
 
 # Merge dataframes by column name
 setDT(df)
@@ -246,11 +259,19 @@ dfs <- subset(dfs, select = c("date", "TWITTER", "SARS", "Gripe"))
 
 dfs <- na.omit(dfs)
 # Save csv file---------------------------------------------------------------
-write.csv(dfs, "sars_twitter_ts.csv")
+write.csv(dfs, "sars_twitterU9.csv")
+```
+
+Summary Twitter Liverpool
+```{r, echo=FALSE}
+dfstab <- psych::describe(dfs)
+print(dfstab)
+write.csv(dfs, "SARS-Twitter.csv")
+write.csv(dfstab, "summarySARS-Twitter.csv")
 ```
 
 ### Plot 2 series
-```{r}
+```{r, echo=FALSE}
 #-----------------------------------------------------------------------------
 # Pre-specify some variables to make the following code more generic
 #-----------------------------------------------------------------------------
@@ -301,5 +322,58 @@ fig6
 print(covid_plot)
 ggsave("covid_plot.png", width = 32, height = 18, units = "cm", dpi = 300)
 ```
+
+```{r}
+#-----------------------------------------------------------------------------
+# Pre-specify some variables to make the following code more generic
+#-----------------------------------------------------------------------------
+d <- dfs
+x <- "date"
+y1 <- "Gripe" #Gripe  Liverpool
+y2 <- "SARS"
+
+#-----------------------------------------------------------------------------
+# Rescale the second y axis by 
+#   - subtracting its minimum value (to set it to start at 0)
+#   - scaling so that it has the same range as the 'y1' variable
+#   - offsettting it by the minimum value of y1
+#-----------------------------------------------------------------------------
+a            <- range(d[[y1]])
+b            <- range(d[[y2]])
+scale_factor <- diff(a)/diff(b)
+d[[y2]]      <- ((d[[y2]] - b[1]) * scale_factor) + a[1]
+
+#-----------------------------------------------------------------------------
+# Need to define the second axis transformation to be the inverse of the data
+# transformation to everything cancels out appropriately
+#-----------------------------------------------------------------------------
+trans <- ~ ((. - a[1]) / scale_factor) + b[1]
+
+#-----------------------------------------------------------------------------
+# tell the y axis to set up a scaled secondary axis with the given transform
+#-----------------------------------------------------------------------------
+covid_gripe <-
+ggplot(d) +
+  geom_line(aes_string(x, y1), color = "black", size = 1) + 
+  geom_line(aes_string(x, y2), color = "red", size = 1) +
+  scale_y_continuous("Tweets(Gripe)",sec.axis = sec_axis(trans=trans, name=y2))+
+  #scale_x_continuous("Year 2020") +
+  theme(axis.line.y.right = element_line(color = "red"), 
+        axis.ticks.y.right = element_line(color = "red"),
+        axis.text.y.right = element_text(color = "red"), 
+        axis.title.y.right = element_text(color = "red")
+        ) +
+  labs(
+    title = "Severe Acute Respiratory Illness (SARI) - Brazil",
+    subtitle = "Number of death by day",
+    x = "Year 2020"
+  )
+
+fig7 <- ggplotly(covid_gripe)
+fig7
+print(covid_gripe)
+ggsave("covid_gripe.png", width = 32, height = 18, units = "cm", dpi = 300)
+```
+
 
 
